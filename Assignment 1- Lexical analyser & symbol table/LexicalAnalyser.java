@@ -7,28 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-/**Improvements::
- * The Trie symbol table processToken method can leave currentNode unchanged, causing it to recognise
- * Tarry as if it were Try.
- *
- * The isPrevInputValid method ought to have a flag parameter, and it ought to have
- * setIdentifierEnd wrapped into it releiving the Trie’s client of that resposibility.
- * The lexer features putback.
- *
- * The use of wasStringFinished in driver looks very ad hoc.
- *
- * Why does ‘lexer' in state 0 put back a delimiter instead of processing it immediately?
- *
- * Case 3 would not require putback if state 5’s logic were moved there.
- *
- * I don’t understand why checkForOverflow needs divide by 100 and not 10.
- *
- * The JFlex is excellent apart from the same 100 vs 10 issue.
- *
- * The Report is excellent. It is better not to put code into a report however. It would be good to see the outputs
- * for the sample inputs provided.
- *
- */
 public class LexicalAnalyser {
     private static final boolean LEXICAL_ERROR = true;
     private static final int INTEGER_MAX = 65535;
@@ -139,7 +117,7 @@ public class LexicalAnalyser {
                     return SKIP_TOKEN_FLAG;
                 } else if (isDelimeter(c)) {
                     STATE = 6;
-                    putBack();              //Why put back? instead of handling it immediately.
+                    putBack();
                     return SKIP_TOKEN_FLAG;
                 }
                 break;

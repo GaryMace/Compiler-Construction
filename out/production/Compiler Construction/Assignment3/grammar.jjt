@@ -1,0 +1,356 @@
+options {
+        MULTI = true;
+        VISITOR = true;
+        NODE_DEFAULT_VOID = true;
+}
+
+PARSER_BEGIN(Parser)
+
+public class Parser {
+        /**
+	    * Student Name: Gary Mac Elhinney
+	    * Student Number: 13465572
+	    **/
+        public static void main (String[] args) throws ParseException{
+                Parser parser = new Parser(System.in);
+                Data data = new Data();
+
+                try{
+                        ASTBlock n = parser.BLOCK();
+                        ParserVisitor v = new ParserDumpVisitor();
+                        n.jjtAccept(v, data);
+                        //n.dump("");
+                        System.out.println("Successfully Parsed");
+                } catch (Exception e) {
+                        System.out.println("Something went wrong....");
+                        System.out.println(e.getMessage());
+                        e.printStackTrace();
+                }
+        }
+}
+
+PARSER_END(Parser)
+
+SKIP :
+{
+        " "
+|       "\n"
+|       "\t"
+|       "\r"
+}
+
+
+TOKEN :
+{
+        <INT : "int">
+|       <BOOL : "bool">
+|       <NUM : (["0"-"9"])+>
+|       <ID : (["A"-"Z","a"-"z"])+>
+|       <ASSIGN : ":=">
+|	    <LPAR : "{">
+|	    <RPAR : "}">
+|       <LBRAC : "(">
+|       <RBRAC : ")">
+|	    <SUM : "+">
+|	    <SUB : "-">
+|	    <PROD : "*">
+|	    <EQU : "=">
+|       <GRTN : ">">
+|       <LSTN : "<">
+|       <IF : "->">
+|       <ELSE : ":">
+|       <SEMIC : ";">
+|       <COMMA : ",">
+}
+
+/** Non-Terminals **/
+ASTBlock BLOCK() #Block : {}
+{
+        <LPAR> DECLSET() STMTSET() <RPAR> <EOF>
+        { return jjtThis;}
+}
+
+void DECLSET() : {}
+{
+        DECL() DECLSET_()
+}
+
+void DECLSET_() : {}
+{
+        DECL() DECLSET_()
+|       { }
+}
+
+void DECL() : {}
+{
+        <INT> INTVARS() <SEMIC>
+|   <BOOL> BOOLVARS() <SEMIC>
+}
+
+void INTVARS() : {}
+{
+        INTID() INTVARS_()
+}
+
+void INTVARS_() : {}
+{
+        INTVARS__() INTVARS_()
+|       { }
+}
+
+void INTVARS__() : {}
+{
+        <COMMA> INTID()
+}
+
+void INTID() #INTID:
+{
+        Token t;
+}
+{
+        t = <ID>
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void BOOLVARS() : {}
+{
+        BOOLID() BOOLVARS_()
+}
+
+void BOOLVARS_() : {}
+{
+        BOOLVARS__() BOOLVARS_()
+|       { }
+}
+
+void BOOLVARS__() : {}
+{
+        <COMMA> BOOLID()
+}
+
+void BOOLID() #BOOLID:
+{
+        Token t;
+}
+{
+        t = <ID>
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void VARS() : {}
+{
+        <ID> VARS_()
+}
+
+void VARS_() : {}
+{
+        VARS__() VARS_()
+|       { }
+}
+
+void VARS__() : {}
+{
+        <COMMA> <ID>
+}
+
+void STMTSET() : {}
+{
+        STMT() STMTSET_()
+}
+
+void STMTSET_() : {}
+{
+        <SEMIC> STMT() STMTSET_()
+|       { }
+}
+
+void STMT() : {}
+{
+        ASSN()
+}
+
+void ASSN() #IDAssn :
+{
+        Token t;
+}
+{
+        t = <ID> ASSN_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void ASSN_() : {}
+{
+        <ASSIGN> TERM() ASSN__()
+}
+
+void ASSN__() : {}
+{
+        ARITH() ASSN___()
+}
+
+void ASSN___() : {}
+{
+        COMP()
+|       { }
+}
+
+void ARITH() : {}
+{
+        SUMARITH()
+|       SUBARITH()
+|	    PRODARITH()
+|       { }
+}
+
+void SUMARITH() #SUMArith :
+{
+        Token t;
+}
+{
+        t = <SUM> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+
+void SUBARITH() #SUBArith :
+{
+        Token t;
+}
+{
+        t = <SUB> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void PRODARITH() #PRODTerm :
+{
+        Token t;
+}
+{
+        t = <PROD> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void ARITH_() : {}
+{
+        TERM() ARITH()
+}
+
+void TERMARITH() : {}
+{
+	    TERM() ARITH()
+|	    { }
+}
+
+void TERM() : {}
+{
+        FACTOR() TERMARITH()
+}
+
+void FACTOR() : {}
+{
+        IDFACTOR()
+|       NUMFACTOR()
+|       <LBRAC> ARITH_() <RBRAC>
+}
+
+void IDFACTOR() #IDFactor:
+{
+        Token t;
+}
+{
+        t = <ID>
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void NUMFACTOR() #NUMFactor :
+{
+        Token t;
+}
+{
+        t = <NUM>
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void COMP() : {}
+{
+        EQUCOMP() COND()
+|       GRTNCOMP() COND()
+|       LSTNCOMP() COND()
+}
+
+void EQUCOMP() #EQUComp :
+{
+        Token t;
+}
+{
+        t = <EQU> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void GRTNCOMP() #GRTNComp :
+{
+        Token t;
+}
+{
+        t = <GRTN> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void LSTNCOMP() #LSTNComp :
+{
+        Token t;
+}
+{
+        t = <LSTN> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void COND() : {}
+{
+        IFCOND() ELSECOND()
+|       { }
+}
+
+void IFCOND() #IFCond :
+{
+        Token t;
+}
+{
+        t = <IF> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
+
+void ELSECOND() #ELSECond :
+{
+        Token t;
+}
+{
+        t = <ELSE> ARITH_()
+        {
+                jjtThis.setName(t.image);
+        }
+}
